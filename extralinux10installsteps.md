@@ -3,6 +3,46 @@
 **NB**: _This information is current as of 11 November 2025. If you are updating this
 document, please change this date._
 
+**NB**: *If you are using SSH to access the workstation that has a new major version update, **remove** the workstation from the remote machine's `knownhosts` file (likely in ~/.ssh)* before connecting to it for the first time. If you don't, SSH will think something is awry.
+
+## Initial Setup
+
+### Rocky 10 ISO source
+
+The Rocky 10 ISO can be downloaded from [Rocky's official download page](https://rockylinux.org/download). There are options for which iso you want to download. For our purposes the `DVD ISO` is being used. This contains everything necessary to build Rocky 10 by itself, whereas the `Boot ISO` requires internet access to download most of Rocky every time it is used to install the operating system.
+
+### Installing from an ISO
+
+After booting into the installation ISO, most of the steps tell you which option to pick or are immediately apparent. Here are the guidelines for the options that may be ambiguous:
+- Device Type: workstation (or whichever option includes graphics and is meant to be used by people)
+- If the machine has two drives, add OS and *only* OS to the **smaller** drive. This ensures that if the disk becomes full, you will still be able to use the OS.
+- If asked whether to resize `boot`, leave it with 1 gb of storage.
+
+### Attaching NFS mounts to fstab
+
+Add the following to fstab to include NAS mounts:
+
+```
+### NFS Mounts ###
+
+141.166.186.35:/mnt/usrlocal/8  /usr/local/chem.sw  nfs     ro,nosuid,nofail,_netdev,bg,timeo=10,retrans=2 0 0
+141.166.186.35:/mnt/usrlocal/intel-tools /opt/intel nfs     ro,nosuid,nofail,_netdev,bg,timeo=10,retrans=2 0 0
+# 141.166.222.28:/mnt/chem1 /home_backups nfs                 ro,nosuid,nofail,_netdev,bg,timeo=10,retrans=2 0 0
+# 141.166.222.28:/mnt/chem1/logP /logP  nfs                   rw,nosuid,nofail,_netdev,bg,timeo=10,retrans=2 0 0
+
+# logP mounts from FrankSinatra
+141.166.186.1:/mnt/everything/logP /franksinatra/logP nfs ro,_netdev,bg,timeo=10,retrans=2 0 0
+141.166.186.1:/mnt/everything/HIV_flaps /franksinatra/HIV_flaps nfs defaults,_netdev,bg,timeo=10,retrans=2 0 0
+
+# spydur files recovered onto natkingcole
+141.166.223.243:/mnt/everything/spydur-files /spydurfiles nfs ro,_netdev,bg,timeo=10,retrans=2 0 0
+
+# backups from FrankSinatra
+141.166.186.1:/mnt/everything/backup-testing  /backups  nfs  ro,nosuid,nofail,_netdev,bg,timeo=10,retrans=2 0 0
+```
+
+After updating fstab, run `mount -a` and `systemctl daemon-reload` to pick up the changes.
+
 ## Disable SELinux
 
 SELinux has its purposes, but it interferes with several scientific packages. The workstations
